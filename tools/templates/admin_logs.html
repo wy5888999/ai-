@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>登录日志</title>
+  <style>
+    body { font-family:"Microsoft YaHei UI",sans-serif; background:#f4efe6; margin:20px; }
+    table { width:100%; background:#fff; border-collapse:collapse; }
+    th,td { border:1px solid #eee; padding:8px; font-size:13px; }
+    a { color:#8b5a2b; }
+  </style>
+</head>
+<body>
+  <p><a href="/admin">← 返回后台</a></p>
+  <h3>最近登录日志</h3>
+  <table>
+    <tr><th>时间</th><th>用户</th><th>结果</th><th>IP</th><th>信息</th></tr>
+    {% for L in logs %}
+    <tr>
+      <td>{{ L.created_at }}</td>
+      <td>{{ L.username }}</td>
+      <td>{% if L.ok %}成功{% else %}失败{% endif %}</td>
+      <td>{{ L.ip }}</td>
+      <td>{{ L.message }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>

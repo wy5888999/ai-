@@ -1,0 +1,15 @@
+DeepSeek 报 timeout / HTTP 503 时怎么办（给客户）
+
+原因：DeepSeek 云端忙或网络慢，不是 EA 坏了。
+
+必做：
+1) 每人用自己的 API Key（不要多人共用一个 Key）
+2) 配置里用 deepseek-v4-pro（全程 Pro）
+3) 保持桥接窗口开着；失败会自动重试
+
+data/deepseek_config.json 建议：
+  "model": "deepseek-v4-pro"
+  "fallback_model": "deepseek-v4-pro"
+  "timeout_sec": 90
+  "max_tokens": 512
+  "api_retries": 3

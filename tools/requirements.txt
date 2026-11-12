@@ -1,0 +1,4 @@
+flask>=3.0.0
+pyinstaller>=6.0.0
+pillow>=10.0.0
+# 大模型桥仅用标准库 urllib，无需额外依赖

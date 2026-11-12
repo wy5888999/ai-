@@ -1,0 +1,5 @@
+{
+  "server_url": "http://请改成你的公网IP或域名:8787",
+  "permission_dir": "",
+  "heartbeat_seconds": 30
+}

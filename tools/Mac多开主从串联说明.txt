@@ -1,0 +1,50 @@
+Mac 多开 MT5：主号/从号串联说明
+================================
+
+适用：别人也是 Mac + CrossOver 多开（多个容器）± Mac 原生 MT5。
+不改 EA 代码，只把各终端的 Common\Files 指到同一文件夹。
+
+一、发给对方的文件
+----------------
+1) mac_link_mt5_common.sh   （本目录里的串联脚本）
+2) 本说明（可选）
+
+二、对方操作步骤
+----------------
+1. 先退出所有 MT5（CrossOver 里和 Mac 原生都关掉）。
+
+2. 打开「终端」，进入脚本所在目录，执行：
+
+   chmod +x mac_link_mt5_common.sh
+   ./mac_link_mt5_common.sh
+
+3. 看到「完成」且列表里各容器都指向：
+   ~/MT5_Shared_Common/Files
+   即成功。
+
+4. 再打开各个 MT5，挂同一个 EA：
+   - 只选 1 个账号当主号：
+       UseSharedConfig = true
+       SharedConfigMaster = true
+   - 其余全部从号：
+       UseSharedConfig = true
+       SharedConfigMaster = false
+   - SharedConfigFile / SharedEntryFile 保持默认同名即可
+
+5. 只在主号图表上点「入场多/空」、平仓、暂停。
+   从号 Experts 日志出现「跟随主号」即通。
+
+三、注意
+----------------
+- 主号全机只能有 1 个。
+- 以后又新建了 CrossOver 容器，再跑一遍脚本。
+- 脚本不会上传任何数据，只在本机做软链接。
+- Windows 用户不需要这个脚本（真 Windows 多开本来就共用 Common）。
+
+四、故障排查
+----------------
+主号点入场后，在 Finder 按 Cmd+Shift+G 打开：
+  ~/MT5_Shared_Common/Files
+应出现 XAU_Martin_Entry.sig / queue / cfg。
+若没有：主号没开自动交易，或 UseSharedConfig/Master 没勾对。
+若有文件但从号不跟：从号没挂 EA、没开自动交易，或 Master 也勾成了 true。

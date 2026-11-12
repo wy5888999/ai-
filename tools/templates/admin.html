@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>授权后台</title>
+  <style>
+    :root { --bg:#f4efe6; --card:#fff; --line:#ddd; --ok:#1b8a3e; --bad:#b00020; --accent:#8b5a2b; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: "Microsoft YaHei UI", sans-serif; background: var(--bg); color:#222; }
+    header { background:#3d2b1f; color:#f5e6c8; padding:14px 20px; display:flex; justify-content:space-between; align-items:center; }
+    main { max-width:1100px; margin:20px auto; padding:0 16px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:16px; margin-bottom:16px; }
+    h2 { margin:0 0 12px; font-size:18px; color:var(--accent); }
+    table { width:100%; border-collapse:collapse; font-size:14px; }
+    th, td { border-bottom:1px solid #eee; padding:8px 6px; text-align:left; }
+    th { background:#faf7f2; }
+    .ok { color:var(--ok); font-weight:600; }
+    .bad { color:var(--bad); font-weight:600; }
+    .btn { display:inline-block; border:1px solid #c9b29a; background:#fff; color:#5a3d22; padding:6px 10px; border-radius:4px; text-decoration:none; cursor:pointer; font-size:13px; }
+    .btn:hover { background:#f5e6c8; }
+    .btn.primary { background:#8b5a2b; color:#fff; border-color:#8b5a2b; }
+    form.inline { display:inline; }
+    input, select { padding:6px 8px; margin:4px 4px 4px 0; }
+    .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:8px; }
+    .muted { color:#777; font-size:12px; }
+    .flash { padding:10px; background:#e8f5e9; border:1px solid #a5d6a7; margin-bottom:12px; border-radius:6px; }
+    .flash.err { background:#ffebee; border-color:#ef9a9a; }
+  </style>
+</head>
+<body>
+  <header>
+    <div><strong>EA 授权后台</strong> <span class="muted" style="color:#d2b48c">按月续费管理</span></div>
+    <div>
+      <a class="btn" href="/admin/logs">登录日志</a>
+      <a class="btn" href="/admin/logout">退出</a>
+    </div>
+  </header>
+  <main>
+    {% if flash %}
+    <div class="flash {% if flash_err %}err{% endif %}">{{ flash }}</div>
+    {% endif %}
+
+    <div class="card">
+      <h2>授权窗口服务器（固定）</h2>
+      <form method="post" action="/admin/settings" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <input name="client_server_url" value="{{ client_server_url }}"
+               placeholder="http://127.0.0.1:8787" required
+               style="flex:1;min-width:260px;padding:8px;" />
+        <button class="btn primary" type="submit">保存并联动窗口</button>
+      </form>
+      <p class="muted" style="margin:8px 0 0;">
+        本机默认 <code>http://127.0.0.1:{{ server_port }}</code>。
+        给别人用时改成你的公网/内网地址（如 <code>http://192.168.1.8:{{ server_port }}</code>），
+        保存后会写入客户端配置，授权窗口只登录、不填服务器。
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>新增客户（默认开通 1 个月，最多绑 {{ max_mt5_per_user }} 个 MT5）</h2>
+      <form method="post" action="/admin/create">
+        <div class="grid">
+          <input name="username" placeholder="授权用户名" required />
+          <input name="password" placeholder="密码" required />
+          <input name="mt5_accounts" placeholder="MT5账号(多个用逗号分隔)" required style="grid-column: span 2;" />
+          <input name="months" type="number" min="1" value="1" title="月数" />
+          <input name="note" placeholder="备注" />
+          <button class="btn primary" type="submit">开户</button>
+        </div>
+      </form>
+      <p class="muted">示例：3103077,3100961 —— 绑几个 MT5，客户整机就只能开几个 MT5 程序；多开会被授权工具强制关掉（授权工具需保持登录运行）。</p>
+    </div>
+
+    <div class="card">
+      <h2>客户列表（{{ users|length }}）</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>用户名</th>
+            <th>密码</th>
+            <th>绑定的MT5账号</th>
+            <th>到期日</th>
+            <th>剩余天</th>
+            <th>状态</th>
+            <th>备注</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>{{ u.username }}</td>
+            <td style="font-family:Consolas,monospace;user-select:all;">{{ u.password_display }}</td>
+            <td style="max-width:260px;">
+              <div><strong>{{ u.mt5_count }}/{{ u.mt5_max }}</strong>：{{ u.mt5_accounts_display }}</div>
+              <div class="muted">可开窗口数：{{ u.mt5_count }}（绑几个账号开几个）</div>
+              {% for acc in u.mt5_accounts %}
+              <form class="inline" method="post" action="/admin/mt5/remove" style="margin-top:4px;">
+                <input type="hidden" name="username" value="{{ u.username }}" />
+                <input type="hidden" name="mt5_account" value="{{ acc }}" />
+                <button class="btn" type="submit" title="解绑">解绑 {{ acc }}</button>
+              </form>
+              {% endfor %}
+              {% if u.mt5_count < u.mt5_max %}
+              <form method="post" action="/admin/mt5/add" style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;">
+                <input type="hidden" name="username" value="{{ u.username }}" />
+                <input name="mt5_account" placeholder="追加MT5账号" required style="width:130px;padding:6px;" />
+                <button class="btn primary" type="submit">绑定</button>
+              </form>
+              {% endif %}
+            </td>
+            <td>{{ u.expiry_display }}</td>
+            <td class="{% if u.days_left < 0 %}bad{% elif u.days_left <= 7 %}bad{% else %}ok{% endif %}">
+              {% if u.days_left < 0 %}已过期 {{ -u.days_left }} 天{% else %}{{ u.days_left }} 天{% endif %}
+            </td>
+            <td>{% if u.enabled %}启用{% else %}<span class="bad">禁用</span>{% endif %}</td>
+            <td>{{ u.note or '-' }}</td>
+            <td style="min-width:280px; white-space:normal;">
+              <div style="margin-bottom:6px;">
+                <form class="inline" method="post" action="/admin/renew">
+                  <input type="hidden" name="username" value="{{ u.username }}" />
+                  <input type="hidden" name="months" value="1" />
+                  <button class="btn primary" type="submit">续费1个月</button>
+                </form>
+                <form class="inline" method="post" action="/admin/renew">
+                  <input type="hidden" name="username" value="{{ u.username }}" />
+                  <input type="hidden" name="months" value="3" />
+                  <button class="btn" type="submit">+3月</button>
+                </form>
+                {% if u.enabled %}
+                <form class="inline" method="post" action="/admin/disable">
+                  <input type="hidden" name="username" value="{{ u.username }}" />
+                  <button class="btn" type="submit">禁用</button>
+                </form>
+                {% else %}
+                <form class="inline" method="post" action="/admin/enable">
+                  <input type="hidden" name="username" value="{{ u.username }}" />
+                  <button class="btn" type="submit">启用</button>
+                </form>
+                {% endif %}
+              </div>
+              <form method="post" action="/admin/password" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                <input type="hidden" name="username" value="{{ u.username }}" />
+                <span style="font-size:12px;color:#666;">改密码:</span>
+                <input name="password" type="text" placeholder="输入新密码" required
+                       style="width:120px;padding:6px;border:1px solid #c9b29a;" />
+                <button class="btn primary" type="submit">保存密码</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </main>
+</body>
+</html>

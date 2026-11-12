@@ -1,0 +1,14 @@
+{
+  "api_key": "YOUR_DEEPSEEK_API_KEY",
+  "base_url": "https://api.deepseek.com",
+  "model": "deepseek-v4-pro",
+  "temperature": 0.2,
+  "max_tokens": 1024,
+  "timeout_sec": 90,
+  "interval_sec": 40,
+  "out_dir": "",
+  "fallback_model": "deepseek-v4-pro",
+  "thinking": false,
+  "api_retries": 3,
+  "api_retry_sleep_sec": 2.0
+}

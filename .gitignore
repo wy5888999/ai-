@@ -1,0 +1,15 @@
+# 密钥和本机账号，不要进 GitHub
+tools/data/deepseek_config.json
+tools/data/config.json
+tools/data/users.json
+tools/data/license.db
+tools/data/client_config.json
+tools/data/auth_tool.lock
+licenses/
+
+# 编译中间文件
+tools/build/
+__pycache__/
+*.pyc
+.DS_Store
+*.log
